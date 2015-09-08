@@ -1,5 +1,7 @@
 import http.client
 import json
+import calc
+from math import sin,cos,pi,atan2
 
 __author__ = 'gordon'
 
@@ -64,3 +66,7 @@ def getPose():
         return json.loads(poseData.decode('utf-8'))
     else:
         return UnexpectedResponse(response)
+
+def getBearing():
+    """Returns the XY Orientation as a bearing unit vector"""
+    return calc.bearing(getPose()['Pose']['Orientation'])
