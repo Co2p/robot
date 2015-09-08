@@ -136,7 +136,7 @@ if __name__ == '__main__':
             leftLaser1 = laser['Echoes'][160]
             leftLaser2 = laser['Echoes'][180]
 
-            half_laser = laser['Echoes'][50:230]
+            half_laser = laser['Echoes'][50:220]
 
             longest_laser = half_laser.index(max(half_laser))
 
@@ -150,23 +150,24 @@ if __name__ == '__main__':
                 print('tooclose')
                 if midLaser < 0.3:
                     print('midlaser', laser['Echoes'][135])
-                    response =  postSpeed(0.5,0)
-                    time.sleep(3)
+                    response =  postSpeed(1,0)
+                    time.sleep(1)
 
                 if rightLaser1 < 0.3 or rightLaser2 < 0.3:
-                    response =  postSpeed(0.1,-0.4)
+                    response =  postSpeed(1.3,0.1)
 
                 if leftLaser1 < 0.3 or leftLaser2 < 0.3:
-                    response =  postSpeed(-0.1,-0.4)
+                    response =  postSpeed(-1.3,0.1)
 
             elif longest_laser > len(half_laser)/2+7:
-                response = postSpeed(0.2, 0.2)
+                response = postSpeed(1, 0.5)
 
             elif longest_laser < len(half_laser)/2-7:
-                response = postSpeed(-0.2, 0.2)
+                response = postSpeed(-1, 0.5)
 
             else:
-                response = postSpeed(0, 0.2)
-
+                response = postSpeed(0, 1)
         except UnexpectedResponse as ex:
             print('Unexpected response from server when sending speed commands:', ex)
+
+        time.sleep(0.1)
