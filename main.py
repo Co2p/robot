@@ -6,72 +6,10 @@ Author: Erik Billing (billing@cs.umu.se)
 
 Updated by Ola Ringdahl 204-09-11
 """
-
-MRDS_URL = 'localhost:50000'
-
-import http.client, json, time
+import getRequests
+from getRequests import MRDS_URL
+import time
 from math import sin,cos,pi,atan2
-
-HEADERS = {"Content-type": "application/json", "Accept": "text/json"}
-
-class UnexpectedResponse(Exception): pass
-
-def postSpeed(angularSpeed,linearSpeed):
-    """Sends a speed command to the MRDS server"""
-    mrds = http.client.HTTPConnection(MRDS_URL)
-    params = json.dumps({'TargetAngularSpeed':angularSpeed,'TargetLinearSpeed':linearSpeed})
-    mrds.request('POST','/lokarria/differentialdrive',params,HEADERS)
-    response = mrds.getresponse()
-    status = response.status
-    #response.close()
-    if status == 204:
-        return response
-    else:
-        raise UnexpectedResponse(response)
-
-def getLaser():
-    """Requests the current laser scan from the MRDS server and parses it into a dict"""
-    mrds = http.client.HTTPConnection(MRDS_URL)
-    mrds.request('GET','/lokarria/laser/echoes')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        laserData = response.read()
-        response.close()
-        return json.loads(laserData.decode('utf-8'))
-    else:
-        return response
-    
-def getLaserAngles():
-    """Requests the current laser properties from the MRDS server and parses it into a dict"""
-    mrds = http.client.HTTPConnection(MRDS_URL)
-    mrds.request('GET','/lokarria/laser/properties')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        laserData = response.read()
-        response.close()
-        properties = json.loads(laserData.decode('utf-8'))
-        beamCount = int((properties['EndAngle']-properties['StartAngle'])/properties['AngleIncrement'])
-        a = properties['StartAngle']#+properties['AngleIncrement']
-        angles = []
-        while a <= properties['EndAngle']:
-            angles.append(a)
-            a+=pi/180 #properties['AngleIncrement']
-        #angles.append(properties['EndAngle']-properties['AngleIncrement']/2)
-        return angles
-    else:
-        raise UnexpectedResponse(response)
-
-def getPose():
-    """Reads the current position and orientation from the MRDS"""
-    mrds = http.client.HTTPConnection(MRDS_URL)
-    mrds.request('GET','/lokarria/localization')
-    response = mrds.getresponse()
-    if (response.status == 200):
-        poseData = response.read()
-        response.close()
-        return json.loads(poseData.decode('utf-8'))
-    else:
-        return UnexpectedResponse(response)
 
 def bearing(q):
     return rotate(q,{'X':1.0,'Y':0.0,"Z":0.0})
@@ -108,25 +46,25 @@ def qmult(q1,q2):
     
 def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
-    return bearing(getPose()['Pose']['Orientation'])
+    return bearing(getRequests.getPose()['Pose']['Orientation'])
 
 if __name__ == '__main__':
     print('Sending commands to MRDS server', MRDS_URL)
 
     while True:
         try:
-            laser = getLaser()
-            laserAngles = getLaserAngles()
-        except UnexpectedResponse as ex:
+            laser = getRequests.getLaser()
+            laserAngles = getRequests.getLaserAngles()
+        except getRequests.UnexpectedResponse as ex:
             print('Unexpected response from server when reading laser data:', ex)
 
 
         try:
-            pose = getPose()
+            pose = getRequests.getPose()
             #print('Current position: ', pose['Pose']['Position'])
             #print('Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getBearing()))
 
-        except UnexpectedResponse as ex:
+        except getRequests.UnexpectedResponse as ex:
             print('Unexpected response from server when reading position:', ex)
 
         try:
@@ -150,24 +88,24 @@ if __name__ == '__main__':
                 print('tooclose')
                 if midLaser < 0.3:
                     print('midlaser', laser['Echoes'][135])
-                    response =  postSpeed(1,0)
+                    response =  getRequests.postSpeed(1,0)
                     time.sleep(1)
 
                 if rightLaser1 < 0.3 or rightLaser2 < 0.3:
-                    response =  postSpeed(1.3,0.1)
+                    response = getRequests.postSpeed(1.3,0.1)
 
                 if leftLaser1 < 0.3 or leftLaser2 < 0.3:
-                    response =  postSpeed(-1.3,0.1)
+                    response = getRequests.postSpeed(-1.3,0.1)
 
             elif longest_laser > len(half_laser)/2+7:
-                response = postSpeed(1, 0.5)
+                response = getRequests.postSpeed(1, 0.5)
 
             elif longest_laser < len(half_laser)/2-7:
-                response = postSpeed(-1, 0.5)
+                response = getRequests.postSpeed(-1, 0.5)
 
             else:
-                response = postSpeed(0, 1)
-        except UnexpectedResponse as ex:
+                response = getRequests.postSpeed(0, 1)
+        except getRequests.UnexpectedResponse as ex:
             print('Unexpected response from server when sending speed commands:', ex)
 
         time.sleep(0.1)
