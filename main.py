@@ -1,71 +1,71 @@
-"""
-Example demonstrating how to communicate with Microsoft Robotic Developer
-Studio 4 via the Lokarria http interface. 
-
-Author: Erik Billing (billing@cs.umu.se)
-
-Updated by Ola Ringdahl 204-09-11
-"""
+import sys
+import calc
 import getRequests as get
 from getRequests import MRDS_URL
 import time
-from math import sin,cos,pi,atan2
+import json
+from math import sin,cos,pi,atan2, sqrt
+
+global robot_direction
+global goal_direction
+
 
 print('Sending commands to MRDS server', MRDS_URL)
 
+print(sys.argv[1])
+jstr = open(sys.argv[1])
+print(jstr)
+jsonInstruction = json.load(jstr)
+
+
+current_position = get.getPose()
+
+print(current_position)
+i=0
+
 while True:
-    try:
-        laser = get.getLaser()
-        laserAngles = get.getLaserAngles()
-    except get.UnexpectedResponse as ex:
-        print('Unexpected response from server when reading laser data:', ex)
+
+    current_instruction = jsonInstruction[i]
+    print(i)
+
+    current_position = get.getPose()
+
+    #calc rotation
+    robot_direction = calc.direction(current_position['Pose']['Orientation'])
+    print('robot is poining ', robot_direction)
+
+    vector = calc.qmult(calc.quaternion(current_position['Pose']['Position']), calc.quaternion(current_instruction['Pose']['Position']))
+
+    #vector = calc.bearing(calc.qmult(calc.quaternion(current_position['Pose']['Position']), calc.quaternion(current_instruction['Pose']['Position'])))
+
+    goal_direction = calc.direction(vector)
+    print('robot should be ', goal_direction)
 
 
-    try:
-        pose = get.getPose()
-        #print('Current position: ', pose['Pose']['Position'])
-        #print('Current heading vector: X:{X:.3}, Y:{Y:.3}'.format(**getBearing()))
 
-    except get.UnexpectedResponse as ex:
-        print('Unexpected response from server when reading position:', ex)
+    #calc movement
+    robot_position = current_position['Pose']['Position']
+    goal_position = current_instruction['Pose']['Position']
 
-    try:
-        rightLaser1 = laser['Echoes'][90]
-        rightLaser2 = laser['Echoes'][110]
-        midLaser = laser['Echoes'][135]
-        leftLaser2 = laser['Echoes'][160]
-        leftLaser1 = laser['Echoes'][180]
+    deltaX = robot_position['X']-goal_position['X']
+    deltaY = robot_position['Y'] - goal_position['Y']
 
-        half_laser = laser['Echoes'][50:220]
+    distance = sqrt((deltaX)**2 + (deltaY)**2)
 
-        longest_laser = half_laser.index(max(half_laser))
+    print('distance to goal: ', distance)
 
-        too_close = False
+    if distance > 0.2:
+        if (abs(goal_direction - robot_direction) > pi * 2):
+            print('Shiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiit')
 
-        for n in half_laser:
-            if n < 0.6:
-                too_close = True
+        get.postSpeed((goal_direction - robot_direction), 0)
+        time.sleep(1)
+        get.postSpeed(0, distance)
+        time.sleep(1)
 
-        if too_close:
-            if midLaser < 0.6:
-                print('midlaser', laser['Echoes'][135])
-                response =  get.postSpeed(1,0)
-                time.sleep(1)
+    else:
+        i = i + 1
 
-            if rightLaser1 < 0.5 or rightLaser2 < 0.6:
-                response = get.postSpeed(1.3,0.1)
 
-            if leftLaser1 < 0.5 or leftLaser2 < 0.6:
-                response = get.postSpeed(-1.3,0.1)
 
-        else:
-            response = get.postSpeed(0, 1)
-    except get.UnexpectedResponse as ex:
-        print('Unexpected response from server when sending speed commands:', ex)
 
-    bearing = get.getBearing()
-    current_bearing = atan2(bearing['Y'], bearing['X'])*180/pi
-
-    print(current_bearing)
-
-    time.sleep(0.1)

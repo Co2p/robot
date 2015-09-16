@@ -32,3 +32,9 @@ def qmult(q1,q2):
     q["Y"]=q1["W"]*q2["Y"]-q1["X"]*q2["Z"]+q1["Y"]*q2["W"]+q1["Z"]*q2["X"]
     q["Z"]=q1["W"]*q2["Z"]+q1["X"]*q2["Y"]-q1["Y"]*q2["X"]+q1["Z"]*q2["W"]
     return q
+
+def direction(bearing):
+    """
+    *180/pi
+    """
+    return atan2(bearing['Y'], bearing['X'])
