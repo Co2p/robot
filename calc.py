@@ -1,40 +1,40 @@
 from math import sin,cos,pi,atan2
 
-def bearing(q):
-    return rotate(q,{'X':1.0,'Y':0.0,"Z":0.0})
+def bearing(quaternion):
+    return rotate(quaternion,{'X': 1.0,'Y':0.0,"Z":0.0})
 
-def rotate(q,v):
-    return vector(qmult(qmult(q,quaternion(v)),conjugate(q)))
+def rotate(quaternion,vector):
+    return vector(qmult(qmult(quaternion,quaternion(vector)),conjugate(quaternion)))
 
-def quaternion(v):
-    q=v.copy()
-    q['W']=0.0;
-    return q
+def quaternion(vector):
+    quaternion=vector.copy()
+    quaternion['W']=0.0;
+    return quaternion
 
-def vector(q):
-    v={}
-    v["X"]=q["X"]
-    v["Y"]=q["Y"]
-    v["Z"]=q["Z"]
-    return v
+def vector(quaternion):
+    vector={}
+    vector["X"]=quaternion["X"]
+    vector["Y"]=quaternion["Y"]
+    vector["Z"]=quaternion["Z"]
+    return vector
 
-def conjugate(q):
-    qc=q.copy()
-    qc["X"]=-q["X"]
-    qc["Y"]=-q["Y"]
-    qc["Z"]=-q["Z"]
+def conjugate(quaternion):
+    qc=quaternion.copy()
+    qc["X"]=-quaternion["X"]
+    qc["Y"]=-quaternion["Y"]
+    qc["Z"]=-quaternion["Z"]
     return qc
 
-def qmult(q1,q2):
-    q={}
-    q["W"]=q1["W"]*q2["W"]-q1["X"]*q2["X"]-q1["Y"]*q2["Y"]-q1["Z"]*q2["Z"]
-    q["X"]=q1["W"]*q2["X"]+q1["X"]*q2["W"]+q1["Y"]*q2["Z"]-q1["Z"]*q2["Y"]
-    q["Y"]=q1["W"]*q2["Y"]-q1["X"]*q2["Z"]+q1["Y"]*q2["W"]+q1["Z"]*q2["X"]
-    q["Z"]=q1["W"]*q2["Z"]+q1["X"]*q2["Y"]-q1["Y"]*q2["X"]+q1["Z"]*q2["W"]
-    return q
+def qmult(quaternion1,quaternion2):
+    quaternion={}
+    quaternion["W"]=quaternion1["W"]*quaternion2["W"]-quaternion1["X"]*quaternion2["X"]-quaternion1["Y"]*quaternion2["Y"]-quaternion1["Z"]*quaternion2["Z"]
+    quaternion["X"]=quaternion1["W"]*quaternion2["X"]+quaternion1["X"]*quaternion2["W"]+quaternion1["Y"]*quaternion2["Z"]-quaternion1["Z"]*quaternion2["Y"]
+    quaternion["Y"]=quaternion1["W"]*quaternion2["Y"]-quaternion1["X"]*quaternion2["Z"]+quaternion1["Y"]*quaternion2["W"]+quaternion1["Z"]*quaternion2["X"]
+    quaternion["Z"]=quaternion1["W"]*quaternion2["Z"]+quaternion1["X"]*quaternion2["Y"]-quaternion1["Y"]*quaternion2["X"]+quaternion1["Z"]*quaternion2["W"]
+    return quaternion
 
-def direction(bearing):
+def direction(vectorY, vectorX):
     """
-    *180/pi
+    180*pi
     """
-    return atan2(bearing['Y'], bearing['X'])
+    return atan2(vectorY, vectorX)
