@@ -129,10 +129,6 @@ while i < len(jsonInstruction) -1:
 
     distance = sqrt((deltaX)**2 + (deltaY)**2)
 
-    diff = (goal_direction - robot_direction)
-    diff = getDiff(diff)
-    #print('direction ', math.degrees(robot_direction), ' should be ', math.degrees(goal_direction))
-
     #print('pimary angular diff ',diff * angular_direction)
 
     if distance < 0.8:
@@ -144,6 +140,10 @@ while i < len(jsonInstruction) -1:
         if starttime is not 0:
             print('Started the clock')
             starttime = time.time()
+
+        diff = (goal_direction - robot_direction)
+        diff = getDiff(diff)
+        #print('direction ', math.degrees(robot_direction), ' should be ', math.degrees(goal_direction))
 
         print('%.1f%% of the track' %((i / (len(jsonInstruction) - 1)) * 100))
         paralellMovement(diff, distance)
