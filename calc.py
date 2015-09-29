@@ -3,12 +3,12 @@ from math import sin,cos,pi,atan2
 def bearing(quaternion):
     return rotate(quaternion,{'X': 1.0,'Y':0.0,"Z":0.0})
 
-def rotate(quaternion,vector):
-    return vector(qmult(qmult(quaternion,quaternion(vector)),conjugate(quaternion)))
+def rotate(q,v):
+    return vector(qmult(qmult(q, quaternion(v)), conjugate(q)))
 
 def quaternion(vector):
     quaternion=vector.copy()
-    quaternion['W']=0.0;
+    quaternion['W']=0.0
     return quaternion
 
 def vector(quaternion):
@@ -34,7 +34,4 @@ def qmult(quaternion1,quaternion2):
     return quaternion
 
 def direction(vectorY, vectorX):
-    """
-    180*pi
-    """
     return atan2(vectorY, vectorX)
